@@ -13,14 +13,18 @@ fcgen = FragmentCatalog.FragCatGenerator()
 fpgen = FragmentCatalog.FragFPGenerator()
 
 @click.command()
-@click.option( '--infile','-i' )
-def getfragmentfp( infile ):
+@click.argument( 'infile' )
+@click.option( '--output','-o', default = 'calc_frag_fp.npz' )
+def getfragmentfp( infile, output ):
     fragfps = []
     sdf = Chem.SDMolSupplier( infile )
+    counter = 0
     for mol in sdf:
         if mol == None:
             continue
+        counter += 1
         nAdded = fcgen.AddFragsFromMol( mol, fcat )
+    print( "{} mols read".format( counter ) )
     for mol in sdf:
         if mol == None:
             continue
@@ -28,13 +32,10 @@ def getfragmentfp( infile ):
         fp = fpgen.GetFPForMol( mol, fcat )
         DataStructs.ConvertToNumpyArray( fp, arr )
         fragfps.append( arr )
-    print( np.asarray(fragfps).shape )
-    return fragfps
+    fragfps = np.asarray( fragfps )
+    np.savez( output, x = fragfps )
+    print( fragfps.shape )
+    print( 'done!' )
 
 if __name__ == '__main__':
     getfragmentfp()
-
-
-
-
-
